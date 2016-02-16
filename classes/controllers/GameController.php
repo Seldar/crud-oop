@@ -15,10 +15,16 @@ class GameController extends Controller {
 			array(
 				 "=" => array("gameId" => 800),
 				 "like" => array("title" => "Ya%"),
-			 )
+			 ),
+			 array("model" => new Category(),"dir" => "LEFT")
 		 );
+		 
+		 /*$result = $this->model->findOne(
+			"800",
+			 array("model" => new Category(),"dir" => "LEFT")
+		 );*/
 			
-		print_r($result);
+		return $result;
 	}
 }
 ?>

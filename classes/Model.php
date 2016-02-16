@@ -23,8 +23,15 @@ abstract class Model {
 		
 	}
 	
-	function findOne($id) {
-		$query = "SELECT * FROM " . $this->tableName . " WHERE " . $this->primaryKey . " = ?";
+	function findOne($id, $join = null) {
+		$table = $this->tableName;
+		
+		if(count($join) > 0)
+		{
+			$table .= " " . $join['dir'] . " JOIN " . $join['model']->tableName . " ON " . $this->tableName . "." . $join['model']->joins[$this->tableName][0] . " = " . $join['model']->tableName . "." . $join['model']->joins[$this->tableName][1];
+		}
+		
+		$query = "SELECT * FROM " . $table . " WHERE " . $this->primaryKey . " = ?";
 		$statement = $this->db->prepare($query);
 		$statement->bind_param($this->metaData[$this->primaryKey], $id);
 		$statement->execute();
@@ -46,10 +53,17 @@ abstract class Model {
 		return $result;
 	}
 
-	function find($where = null) {
+	function find($where = null, $join = null) {
 		$data = array();
 		$types = "";
-		$query = "SELECT * FROM " . $this->tableName;
+		
+		$table = $this->tableName;
+		if(count($join) > 0)
+		{
+			$table .= " " . $join['dir'] . " JOIN " . $join['model']->tableName . " ON " . $this->tableName . "." . $join['model']->joins[$this->tableName][0] . " = " . $join['model']->tableName . "." . $join['model']->joins[$this->tableName][1];
+		}
+				
+		$query = "SELECT * FROM " . $table;
 		if(count($where) > 0)
 		{
 			$query .= " WHERE ";
@@ -98,27 +112,66 @@ abstract class Model {
 	function add($data) {
 		foreach($data as $key => $val)
 		{
-			$ext[] = $key . " = '" . $val . "'";
+			$ext[] = $key . " = ?";
+			$params[] = $val;
+			$types .= $this->metaData[$key];
 		}
-		$query = "INSERT INTO " . $this->tableName . " SET " . implode(",",$ext);
-		$result = $this->db->query($query);
+		$query = "INSERT INTO " . $this->tableName . " SET " . implode(",",$ext);			
+		$statement = $this->db->prepare($query);
+		array_unshift($params,$types);
+		foreach($params as $key => $value)
+		{
+			$refs[$key] = &$params[$key];
+		}
+		call_user_func_array(array($statement, 'bind_param'), $refs); 				
+		
+		$result = $statement->execute();
 		return $result;
 	}
 	function remove($id) {
-		$query = "DELETE FROM " . $this->tableName . " WHERE " . $this->primaryKey . " = '" . $id . "'";
-		$result =$this->db->query($query);
+		$query = "DELETE FROM " . $this->tableName . " WHERE " . $this->primaryKey . " = ?";
+		$statement = $this->db->prepare($query);
+		$statement->bind_param($this->metaData[$this->primaryKey], $id);
+		
+		$result = $statement->execute();
 		return $result;		
 	}
 	function update($data, $where = null) {
 		foreach($data as $key => $val)
 		{
-			$ext[] = $key . " = '" . $val . "'";
+			$ext[] = $key . " = ?";
+			$params[] = $val;
+			$types .= $this->metaData[$key];
 		}
 		$query = "UPDATE " . $this->tableName . " SET " . implode(",",$ext);
-		if($where)
-		$query .= " WHERE " . $where;
-		$result = $this->db->query($query);
-		return $result;		
+		if(count($where) > 0)
+		{
+			$query .= " WHERE ";
+			foreach($where as $operator => $condition)
+			{
+				foreach($condition as $attribute => $value)
+				{
+					$params[] = $value;
+					$queryParts[] = $attribute . " " . $operator . " ?";
+					$types .= $this->metaData[$attribute];
+				}
+			}
+			$query .= implode(" AND ", $queryParts);
+			
+			$statement = $this->db->prepare($query);
+			
+			array_unshift($params,$types);
+		    foreach($params as $key => $value)
+	        {
+				$refs[$key] = &$params[$key];
+			}
+			call_user_func_array(array($statement, 'bind_param'), $refs); 			
+		}
+		else
+		$statement = $this->db->prepare($query);
+		$result = $statement->execute();
+		return $result;
+
 	}
 }
 ?>

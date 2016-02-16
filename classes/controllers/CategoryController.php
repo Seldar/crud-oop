@@ -18,7 +18,7 @@ class CategoryController extends Controller {
 			 )
 		 );
 			
-		print_r($result);
+		return $result;
 	}
 }
 ?>
