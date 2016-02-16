@@ -1,5 +1,4 @@
 <?php
-include "Database.php";
 abstract class Model {
 	public $primaryKey;
 	public $tableName;
