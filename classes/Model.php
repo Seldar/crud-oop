@@ -19,6 +19,8 @@ abstract class Model {
 			$this->metaData[$row['Field']] = "d";
 			else if(strpos($row['Type'],"blob") > -1)
 			$this->metaData[$row['Field']] = "b";
+			else
+			$this->metaData[$row['Field']] = "";
 		}
 		
 	}
@@ -110,6 +112,7 @@ abstract class Model {
 		return $data;		
 	}
 	function add($data) {
+		$types = "";
 		foreach($data as $key => $val)
 		{
 			$ext[] = $key . " = ?";
@@ -136,7 +139,13 @@ abstract class Model {
 		$result = $statement->execute();
 		return $result;		
 	}
-	function update($data, $where = null) {
+	function save($data, $where = null) {
+		$types = "";
+		if(!$data[$this->primaryKey])
+		return $this->add($data);
+		else
+		$where["="][$this->primaryKey] = $data[$this->primaryKey];
+
 		foreach($data as $key => $val)
 		{
 			$ext[] = $key . " = ?";
@@ -144,9 +153,11 @@ abstract class Model {
 			$types .= $this->metaData[$key];
 		}
 		$query = "UPDATE " . $this->tableName . " SET " . implode(",",$ext);
+								
 		if(count($where) > 0)
 		{
 			$query .= " WHERE ";
+
 			foreach($where as $operator => $condition)
 			{
 				foreach($condition as $attribute => $value)
@@ -157,7 +168,7 @@ abstract class Model {
 				}
 			}
 			$query .= implode(" AND ", $queryParts);
-			
+
 			$statement = $this->db->prepare($query);
 			
 			array_unshift($params,$types);
@@ -169,6 +180,7 @@ abstract class Model {
 		}
 		else
 		$statement = $this->db->prepare($query);
+
 		$result = $statement->execute();
 		return $result;
 
