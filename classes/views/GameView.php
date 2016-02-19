@@ -1,5 +1,5 @@
 <?php
-class CategoryView extends View
+class GameView extends View
 {
 	public function formTemplate($formElementHTML)
 	{
@@ -26,7 +26,5 @@ EOT;
 EOT;
 		return $html;
 	}
-	
-	
 }
 ?>

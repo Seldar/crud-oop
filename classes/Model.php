@@ -3,8 +3,9 @@ abstract class Model {
 	public $primaryKey;
 	public $tableName;
 	public $metaData;
+	public $joinedTables;
 	
-	function __construct()
+	function __construct($noNesting=0)
 	{
 		$this->db = Database::initialize();
 		$query = "SHOW FIELDS FROM " . $this->tableName;
@@ -21,6 +22,13 @@ abstract class Model {
 			$this->metaData[$row['Field']] = "b";
 			else
 			$this->metaData[$row['Field']] = "";
+		}
+		if(isset($this->joinModel) && !$noNesting)
+		{
+			foreach($this->joinModel as $model)
+			{
+				$this->joinedTables[$model] = new $model(1);
+			}
 		}
 		
 	}

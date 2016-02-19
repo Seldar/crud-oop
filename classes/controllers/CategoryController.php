@@ -1,4 +1,6 @@
 <?php
+require_once(dirname(__FILE__) . "/../models/Category.php");
+require_once(dirname(__FILE__) . "/../views/CategoryView.php");
 class CategoryController extends Controller {
 	
 	public $modelName = "Category";
@@ -28,30 +30,6 @@ class CategoryController extends Controller {
 		return $result;
 	}
 	
-	function prepareForm()
-	{
-		return $this->view->createForm($this->formElements);
-	}
-	
-	function formSubmit()
-	{
-		foreach($this->formElements as $name => $field) 
-		{
-			if(isset($this->model->metaData[$name]))
-			$data[$name] = $_POST[$name];
-		}
-		$this->model->save($data);
-		
-	}	
-	
-	function setInitialValues($id)
-	{
-		$row = $this->model->findOne($id);
-		foreach($row as $field => $value)
-		{
-			if(isset($this->formElements[$field]))
-			$this->formElements[$field]['initial'] = $value;
-		}
-	}
+
 }
 ?>

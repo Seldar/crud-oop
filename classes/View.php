@@ -1,36 +1,52 @@
 <?php
-class View 
+abstract class View 
 {
-	function createForm($fields)
+	public function createForm($fields)
 	{
-		$html =<<<EOT
-		<form action="" method="post" enctype="application/x-www-form-urlencoded">
-		<table class="tablesorter" cellspacing="1" cellpadding="1" border="1"> 
-EOT;
+
 		foreach($fields as $name => $field)
 		{
 			switch($field['type'])
 			{
 				case "text":
-				$html .=<<<EOT
-				<tr><td>{$field['label']}:</td><td><input value="{$field['initial']}" type="text" name="$name" /></td></tr> 
+				$input =<<<EOT
+				<input value="{$field['initial']}" type="text" name="$name" />
 EOT;
+				$label = $field['label'];
 				break;
 				case "hidden":
-				$html .=<<<EOT
-				<tr style='display:none'><td colspan=2><input value="{$field['initial']}" type="hidden" name="$name" /></td></tr> 
+				$input =<<<EOT
+				<input value="{$field['initial']}" type="hidden" name="$name" />
 EOT;
-				break;				
+				$label = $field['label'];
+				break;
+				case "select":
+				$input =<<<EOT
+				<select name="$name">
+				<option value=""> - Select - </option>
+				{$field['options']}
+				</select>
+EOT;
+				$label = $field['label'];
+				break;
+				case "file":
+				$input =<<<EOT
+				<input type="file" name="$name" />{$field['initial']}
+EOT;
+				$label = $field['label'];
+				break;	
+				case "textarea":
+				$input =<<<EOT
+				<textarea name="$name">{$field['initial']}</textarea>
+EOT;
+				$label = $field['label'];
+				break;			
 				
 			}
+			$formElementHTML[] = array($label,$input);
 		}
-		$html .= <<<EOT
-		<tr>
-	<td colspan = "2"><input type="submit" value="Submit" /></td>
-</tr>
-</table>
-EOT;
-		return $html;
-	}
+		return $this->formTemplate($formElementHTML);
+
+	}	
 }
 ?>
