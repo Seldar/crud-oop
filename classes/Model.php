@@ -4,6 +4,7 @@ abstract class Model {
 	public $tableName;
 	public $metaData;
 	public $joinedTables;
+	public $identifier;
 	
 	function __construct($noNesting=0)
 	{

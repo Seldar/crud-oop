@@ -20,33 +20,8 @@ class GameController extends Controller {
 	public function __construct()
 	{
 		$this->viewName = $this->modelName . "View";
-		$this->initialize();
-		//$this->createOptionsFromModel("Category",$initial);
-		
+		$this->initialize();		
 	}
-	
-	public function search()
-	{
-		
-		$result = $this->model->find(
-			array(
-				 "=" => array("gameId" => 800),
-				 "like" => array("title" => "Ya%"),
-			 ),
-			 array("model" => new Category(),"dir" => "LEFT")
-		 );
-		 
-		 /*$result = $this->model->findOne(
-			"800",
-			 array("model" => new Category(),"dir" => "LEFT")
-		 );*/
-			
-		return $result;
-	}
-	
-	public function createOptionsFromModel($model,$initial)
-	{
-		
-	}	
+
 }
 ?>

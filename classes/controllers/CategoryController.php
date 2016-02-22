@@ -15,21 +15,6 @@ class CategoryController extends Controller {
 	{
 		$this->viewName = $this->modelName . "View";
 		$this->initialize();
-	}
-	
-	public function search()
-	{
-		
-		$result = $this->model->find(
-			array(
-				 "=" => array("categoryId" => 1),
-				 "like" => array("categoryName" => "Ak%"),
-			 )
-		 );
-			
-		return $result;
-	}
-	
-
+	}	
 }
 ?>

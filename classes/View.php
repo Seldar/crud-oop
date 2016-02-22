@@ -3,7 +3,12 @@ abstract class View
 {
 	public function createForm($fields)
 	{
-
+		$html = $this->array2Form($fields);
+		return $this->formTemplate($html);
+	}	
+	
+	public function array2Form($fields)
+	{
 		foreach($fields as $name => $field)
 		{
 			switch($field['type'])
@@ -45,8 +50,7 @@ EOT;
 			}
 			$formElementHTML[] = array($label,$input);
 		}
-		return $this->formTemplate($formElementHTML);
-
-	}	
+		return $formElementHTML;	
+	}
 }
 ?>

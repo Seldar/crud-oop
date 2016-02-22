@@ -4,31 +4,14 @@ abstract class Controller
 	public $model;
 	public $modelName;
 	public $viewName;
+	public $formElements;
 	
 	public function initialize()
 	{
 		$this->model = new $this->modelName();
 		$this->view = new $this->viewName();
 	}
-	
-	public function prepareForm()
-	{
-		foreach($this->formElements as $name => $field) 
-		{
-			if($field['type'] == "select")
-			{
-				$selectHTML = "";
-				$selectData = $this->model->joinedTables[$field['optionsFrom']]->find();
-				foreach($selectData as $row)
-				{
-					$selectHTML .= '<option value="' . $row['categoryId'] . '" ' . ($field['initial'] == $row['categoryId'] ? "selected" : "") . '>' . $row['categoryName'] . '</option>';
-				}
-				$this->formElements[$name]['options'] = $selectHTML;
-			}
-		}		
-		return $this->view->createForm($this->formElements);
-	}
-	
+		
 	public function formSubmit()
 	{
 		foreach($this->formElements as $name => $field) 
@@ -65,12 +48,77 @@ abstract class Controller
 				}
 			}
 		}
+	}
+	
+	public function fillOptions()	
+	{
+		foreach($this->formElements as $name => $field) 
+		{
+			if($field['type'] == "select")
+			{
+				$selectHTML = "";
+				$selectData = $this->model->joinedTables[$field['optionsFrom']]->find();
+				foreach($selectData as $row)
+				{
+					$selectHTML .= '<option value="' . $row[$this->model->joinedTables[$field['optionsFrom']]->primaryKey] . '" ' . ($field['initial'] == $row[$this->model->joinedTables[$field['optionsFrom']]->primaryKey] ? "selected" : "") . '>' . $row[$this->model->joinedTables[$field['optionsFrom']]->identifier] . '</option>';
+					$selectArr[$row[$this->model->joinedTables[$field['optionsFrom']]->primaryKey]] = $row[$this->model->joinedTables[$field['optionsFrom']]->identifier];
+				}
+				$this->formElements[$name]['options'] = $selectHTML;
+				$this->formElements[$name]['optionsArr'] = $selectArr;
+			}
+		}		
+	}
+	
+	public function prepareForm()
+	{
+		$this->fillOptions();
+		return $this->view->createForm($this->formElements);
+	}
+
+	public function createFilter()
+	{
+		$this->fillOptions();
+		$this->setInitialValuesFromForm();		
+		return $this->view->filterTemplate($this->formElements);		
 	}	
+	
+	public function createList()
+	{
+		$where = array();
+		if(isset($_POST))
+		{
+			foreach($_POST as $field => $value)
+			{
+				if(isset($this->formElements[$field]))
+				{
+					if($this->formElements[$field]['type'] == "text" || $this->formElements[$field]['type'] == "textarea")
+					{
+						$where["like"][$field] = "%$value%";
+					}
+					if($this->formElements[$field]['type'] == "select")
+					{
+						$where["="][$field] = $value;
+					}					
+				}
+			}
+		}
+		$data = $this->model->find($where);
+		return $this->view->indexTemplate($data,$this->formElements);
+	}		
 	
 	public function setInitialValues($id)
 	{
 		$row = $this->model->findOne($id);
 		foreach($row as $field => $value)
+		{
+			if(isset($this->formElements[$field]))
+			$this->formElements[$field]['initial'] = $value;
+		}
+	}	
+	
+	public function setInitialValuesFromForm()
+	{
+		foreach($_POST as $field => $value)
 		{
 			if(isset($this->formElements[$field]))
 			$this->formElements[$field]['initial'] = $value;
